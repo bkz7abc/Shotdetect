@@ -407,10 +407,10 @@ int film::process() {
     /*
      * Allocate current and previous video frames
      */
-    pFrame = avcodec_alloc_frame();
+    pFrame = av_frame_alloc();
     // RGB:
-    pFrameRGB = avcodec_alloc_frame();      // current frame
-    pFrameRGBprev = avcodec_alloc_frame();  // previous frame
+    pFrameRGB = av_frame_alloc();      // current frame
+    pFrameRGBprev = av_frame_alloc();  // previous frame
 
 
     /*
@@ -418,8 +418,8 @@ int film::process() {
      * fields for it
      */
     // RGB:
-    avpicture_alloc((AVPicture *)pFrameRGB, PIX_FMT_RGB24, width, height);
-    avpicture_alloc((AVPicture *)pFrameRGBprev, PIX_FMT_RGB24, width, height);
+    avpicture_alloc((AVPicture *)pFrameRGB, AV_PIX_FMT_RGB24, width, height);
+    avpicture_alloc((AVPicture *)pFrameRGBprev, AV_PIX_FMT_RGB24, width, height);
 
     /*
      * Mise en place du premier plan
@@ -458,7 +458,7 @@ int film::process() {
         if (!img_convert_ctx) {
           img_convert_ctx =
               sws_getContext(width, height, pCodecCtx->pix_fmt, width, height,
-                             PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
+                             AV_PIX_FMT_RGB24, SWS_BICUBIC, NULL, NULL, NULL);
           if (!img_convert_ctx) {
             fprintf(stderr,
                     "Cannot initialize the converted RGB image context!\n");
@@ -480,10 +480,10 @@ int film::process() {
                   pCodecCtx->height, pFrameRGB->data, pFrameRGB->linesize);
 
         /* Push new RBG frame into list front */
-        AVFrame* pTempFrame = avcodec_alloc_frame();
-        avpicture_alloc((AVPicture*) pTempFrame, PIX_FMT_RGB24, width, height);
+        AVFrame* pTempFrame = av_frame_alloc();
+        avpicture_alloc((AVPicture*) pTempFrame, AV_PIX_FMT_RGB24, width, height);
         av_picture_copy((AVPicture*) pTempFrame, (AVPicture *)pFrameRGB,
-                        PIX_FMT_RGB24, width, height);
+                        AV_PIX_FMT_RGB24, width, height);
         pFramesRGB.push_back(pTempFrame);
 
         /* If it's not the first image */
@@ -515,7 +515,7 @@ int film::process() {
         }
         /* Copy current frame as "previous" for next round */
         av_picture_copy((AVPicture *)pFrameRGBprev, (AVPicture *)pFrameRGB,
-                        PIX_FMT_RGB24, width, height);
+                        AV_PIX_FMT_RGB24, width, height);
 
         if (display) do_stats(pCodecCtx->frame_number);
       }
@@ -596,7 +596,7 @@ void film::process_audio() {
   len = packet.size;
 
   while (len > 0) {
-    this->audio_buf = avcodec_alloc_frame();
+    this->audio_buf = av_frame_alloc();
     // (short *) av_fast_realloc (this->audio_buf, &samples_size, FFMAX
     // (packet.size, AVCODEC_MAX_AUDIO_FRAME_SIZE));
     data_size = samples_size;
